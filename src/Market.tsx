@@ -7,8 +7,14 @@ interface Data {
   timestamp: number;
 }
 
-const showError = () => {
-  return <div>Error</div>;
+const getTime = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  const hours = date.getHours();
+  const minutes = date.getMinutes().toString().substr(-2);
+  const seconds = date.getSeconds().toString().substr(-2);
+  const formattedTime = `${hours}:${minutes}:${seconds}`;
+
+  return formattedTime;
 };
 
 const highlightMinRates = (currencyPairs: string[]) => {
@@ -19,22 +25,33 @@ const highlightMinRates = (currencyPairs: string[]) => {
         table.querySelectorAll(`.cell[data-currency="${pair}"]`)
       );
 
-      cells.forEach((cell) => cell.classList.remove("cell_highlighted"));
-
-      cells.sort((a, b) => {
-        if (
-          a instanceof HTMLElement &&
-          a.dataset.rate &&
-          b instanceof HTMLElement &&
-          b.dataset.rate
-        ) {
-          return Number(a.dataset.rate) < Number(b.dataset.rate) ? -1 : 1;
-        }
-
-        return 0;
+      const cellsWithRates = cells.filter((cell) => {
+        return (
+          cell instanceof HTMLElement &&
+          cell.dataset.rate &&
+          !Number.isNaN(parseFloat(cell.dataset.rate))
+        );
       });
 
-      cells[0].classList.add("cell_highlighted");
+      if (cellsWithRates.length === 0) {
+        return;
+      }
+
+      cellsWithRates.forEach((cell) =>
+        cell.classList.remove("cell_highlighted")
+      );
+
+      const minRate = Math.min(
+        ...cellsWithRates.map((cell: HTMLElement) =>
+          parseFloat(cell.dataset.rate!)
+        )
+      );
+
+      cellsWithRates
+        .filter(
+          (cell: HTMLElement) => parseFloat(cell.dataset.rate!) === minRate
+        )
+        .forEach((cell) => cell.classList.add("cell_highlighted"));
     });
   }
 };
@@ -48,18 +65,26 @@ const Market = (props: {
   const route = `${props.api}${props.data.route}`;
 
   const [data, setData] = useState({} as Data);
+  const [isError, setError] = useState(false);
 
   const updateRates = async (route: string) => {
-    const response = await fetch(route, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    let response: Response;
+    try {
+      response = await fetch(route, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+    } catch {
+      setError(true);
+      return;
+    }
 
     if (response.status !== 200) {
-      showError();
+      setError(true);
     } else {
       const data = (await response.json()) as Data;
+      setError(false);
       setData(data);
     }
   };
@@ -71,7 +96,7 @@ const Market = (props: {
 
   const rates = props.pairs.map((pair) => {
     if (!data.rates) {
-      return { pair, value: 0 };
+      return { pair, value: "-" };
     }
 
     const [curr, base] = pair.split("/");
@@ -83,6 +108,17 @@ const Market = (props: {
       return { pair, value };
     }
   }, {});
+
+  let status: string;
+  if (isError) {
+    status = "Error";
+  } else {
+    if (data.timestamp) {
+      status = getTime(data.timestamp);
+    } else {
+      status = "-";
+    }
+  }
 
   return (
     <div className="column">
@@ -97,6 +133,7 @@ const Market = (props: {
           {rate.value}
         </div>
       ))}
+      <div className="cell">{status}</div>
     </div>
   );
 };

@@ -13,6 +13,7 @@ const App = () => {
             {pair}
           </div>
         ))}
+        <div className="cell">Status/Last updated</div>
       </div>
       {markets.map((market, i) => (
         <Market key={i} api={api} data={market} pairs={pairs} />
