@@ -1,4 +1,4 @@
-# Testing task for Cupcakes
+# Testing task for Cupcake Development
 
 React frontend task:
 
@@ -10,6 +10,6 @@ React frontend task:
 
 yarn dev
 
-## Make a production build
+## Making a production build
 
 yarn build
