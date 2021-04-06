@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/aldarg/cupcake-frontend-task.svg?branch=master)](https://travis-ci.org/github/aldarg/cupcake-frontend-task)
+[![Maintainability](https://api.codeclimate.com/v1/badges/acdc6d9daaefabeb2f1a/maintainability)](https://codeclimate.com/github/aldarg/cupcake-frontend-task/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/acdc6d9daaefabeb2f1a/test_coverage)](https://codeclimate.com/github/aldarg/cupcake-frontend-task/test_coverage)
+
 # Testing task for Cupcake Development
 
 React frontend task:
