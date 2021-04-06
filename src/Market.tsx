@@ -57,13 +57,15 @@ const highlightMinRates = (currencyPairs: string[]) => {
 };
 
 const Market = (props: {
-  api: string;
-  data: { name: string; route: string };
+  route: string;
+  name: string;
   pairs: string[];
+  fetching: {
+    isFetching: boolean;
+    setFetching: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+  signal: AbortSignal;
 }) => {
-  const name = props.data.name;
-  const route = `${props.api}${props.data.route}`;
-
   const [data, setData] = useState({} as Data);
   const [isError, setError] = useState(false);
 
@@ -74,9 +76,13 @@ const Market = (props: {
         headers: {
           Accept: "application/json",
         },
+        signal: props.signal,
       });
-    } catch {
-      setError(true);
+    } catch (err) {
+      if (err.name != "AbortError") {
+        props.fetching.setFetching(false);
+        setError(true);
+      }
       return;
     }
 
@@ -90,8 +96,12 @@ const Market = (props: {
   };
 
   useEffect(() => {
+    if (!props.fetching.isFetching) {
+      return;
+    }
+
     highlightMinRates(props.pairs);
-    updateRates(route);
+    updateRates(props.route);
   });
 
   const rates = props.pairs.map((pair) => {
@@ -122,18 +132,20 @@ const Market = (props: {
 
   return (
     <div className="column">
-      <div className="cell">{name}</div>
+      <div className="cell column_headers">{props.name}</div>
       {rates.map((rate, i) => (
         <div
           key={i}
-          className="cell"
+          className="cell cell_data"
           data-currency={rate.pair}
           data-rate={rate.value}
         >
           {rate.value}
         </div>
       ))}
-      <div className="cell">{status}</div>
+      <div className={`cell cell_data ${isError ? "cell_error" : ""}`}>
+        {status}
+      </div>
     </div>
   );
 };
