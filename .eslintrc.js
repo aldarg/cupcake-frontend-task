@@ -9,4 +9,14 @@ module.exports = {
     "plugin:react-hooks/recommended",
     "prettier",
   ],
+  env: {
+    browser: true,
+    node: true,
+    es6: true,
+  },
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
 };

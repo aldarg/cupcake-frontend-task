@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React, { useEffect, useState } from "react";
 
 interface Data {
@@ -5,6 +6,17 @@ interface Data {
     [curr: string]: number;
   };
   timestamp: number;
+}
+
+interface MarketProps {
+  route: string;
+  name: string;
+  pairs: string[];
+  fetching: {
+    isFetching: boolean;
+    setFetching: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+  signal: AbortSignal;
 }
 
 const getTime = (timestamp: number) => {
@@ -19,53 +31,49 @@ const getTime = (timestamp: number) => {
 
 const highlightMinRates = (currencyPairs: string[]) => {
   const table = document.getElementById("dataTable");
-  if (table) {
-    currencyPairs.forEach((pair) => {
-      const cells = Array.from(
-        table.querySelectorAll(`.cell[data-currency="${pair}"]`)
-      );
 
-      const cellsWithRates = cells.filter((cell) => {
-        return (
-          cell instanceof HTMLElement &&
-          cell.dataset.rate &&
-          !Number.isNaN(parseFloat(cell.dataset.rate))
-        );
-      });
-
-      if (cellsWithRates.length === 0) {
-        return;
-      }
-
-      cellsWithRates.forEach((cell) =>
-        cell.classList.remove("cell_highlighted")
-      );
-
-      const minRate = Math.min(
-        ...cellsWithRates.map((cell: HTMLElement) =>
-          parseFloat(cell.dataset.rate!)
-        )
-      );
-
-      cellsWithRates
-        .filter(
-          (cell: HTMLElement) => parseFloat(cell.dataset.rate!) === minRate
-        )
-        .forEach((cell) => cell.classList.add("cell_highlighted"));
-    });
+  if (!table) {
+    return;
   }
+
+  currencyPairs.forEach((pair) => {
+    const cells = Array.from(
+      table.querySelectorAll(`.cell[data-currency="${pair}"]`)
+    );
+
+    const cellsWithRates = cells.filter((cell) => {
+      return (
+        cell instanceof HTMLElement &&
+        cell.dataset.rate &&
+        !Number.isNaN(parseFloat(cell.dataset.rate))
+      );
+    });
+
+    if (cellsWithRates.length === 0) {
+      return;
+    }
+
+    cellsWithRates.forEach((cell) => cell.classList.remove("cell_highlighted"));
+
+    const minRate = Math.min(
+      ...cellsWithRates.map((cell: HTMLElement) =>
+        parseFloat(cell.dataset.rate!)
+      )
+    );
+
+    cellsWithRates
+      .filter((cell: HTMLElement) => parseFloat(cell.dataset.rate!) === minRate)
+      .forEach((cell) => cell.classList.add("cell_highlighted"));
+  });
 };
 
-const Market = (props: {
-  route: string;
-  name: string;
-  pairs: string[];
-  fetching: {
-    isFetching: boolean;
-    setFetching: React.Dispatch<React.SetStateAction<boolean>>;
-  };
-  signal: AbortSignal;
-}) => {
+const Market: React.FC<MarketProps> = ({
+  route,
+  name,
+  pairs,
+  fetching: { isFetching, setFetching },
+  signal,
+}: MarketProps) => {
   const [data, setData] = useState({} as Data);
   const [isError, setError] = useState(false);
 
@@ -76,11 +84,11 @@ const Market = (props: {
         headers: {
           Accept: "application/json",
         },
-        signal: props.signal,
+        signal: signal,
       });
     } catch (err) {
       if (err.name != "AbortError") {
-        props.fetching.setFetching(false);
+        setFetching(false);
         setError(true);
       }
       return;
@@ -96,15 +104,14 @@ const Market = (props: {
   };
 
   useEffect(() => {
-    if (!props.fetching.isFetching) {
-      return;
-    }
+    highlightMinRates(pairs);
 
-    highlightMinRates(props.pairs);
-    updateRates(props.route);
+    if (isFetching) {
+      updateRates(route);
+    }
   });
 
-  const rates = props.pairs.map((pair) => {
+  const rates = pairs.map((pair) => {
     if (!data.rates) {
       return { pair, value: "-" };
     }
@@ -117,22 +124,22 @@ const Market = (props: {
       const value = Number(data.rates[curr] / data.rates[base]).toFixed(2);
       return { pair, value };
     }
-  }, {});
+  });
 
-  let status: string;
+  let marketStatus: string;
   if (isError) {
-    status = "Error";
+    marketStatus = "Error";
   } else {
     if (data.timestamp) {
-      status = getTime(data.timestamp);
+      marketStatus = getTime(data.timestamp);
     } else {
-      status = "-";
+      marketStatus = "-";
     }
   }
 
   return (
     <div className="column">
-      <div className="cell column_headers">{props.name}</div>
+      <div className="cell column_headers">{name}</div>
       {rates.map((rate, i) => (
         <div
           key={i}
@@ -144,7 +151,7 @@ const Market = (props: {
         </div>
       ))}
       <div className={`cell cell_data ${isError ? "cell_error" : ""}`}>
-        {status}
+        {marketStatus}
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import "./styles.sass";
-import { api, markets, pairs } from "./settings";
+import "../styles/styles.sass";
+import { api, markets, pairs } from "../settings";
 import Market from "./Market";
 
-const App = () => {
+const App: React.FC = () => {
   const [isFetching, setFetching] = useState(false);
 
   const controller = new AbortController();
