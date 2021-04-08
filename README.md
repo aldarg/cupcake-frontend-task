@@ -10,10 +10,27 @@ React frontend task:
 - Typescript
 - Webpack + Babel
 
-## Starting a dev server
+## Deployment
 
-yarn dev
+```bash
+$ docker-compose up
+```
 
-## Making a production build
+## Installation
 
-yarn build
+```bash
+$ yarn install
+```
+
+## Running the app
+
+```bash
+#build
+$ yarn build
+
+#dev server
+$ yarn dev
+
+#production mode
+$ yarn start:prod
+```

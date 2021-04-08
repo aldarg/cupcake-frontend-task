@@ -1,6 +1,6 @@
 install:
 	yarn install
-develop:
+dev:
 	yarn dev
 build:
 	yarn build

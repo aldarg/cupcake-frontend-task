@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  currency_client:
+    container_name: currency_client
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    ports:
+      - 5000:5000
+    networks:
+      - webnet
+networks:
+  webnet:
